@@ -1,4 +1,4 @@
-import { IBuyer } from "../../../types";
+import { IBuyer } from "../../types";
 
 interface IBuyerInfoValidation{
   address?: string;
@@ -9,14 +9,14 @@ interface IBuyerInfoValidation{
 
 export class Buyer{
  private buyerInfo: IBuyer = {
-    address: null,
+    address: '',
     payment: null,
-    email: null,
-    phone: null
+    email: '',
+    phone: ''
   };
  
   //Сохраняем данные 
-  SaveBuyerInfo(info: Partial<IBuyer>): void{
+  saveBuyerInfo(info: Partial<IBuyer>): void{
     this.buyerInfo = {
       ...this.buyerInfo,
       ...info
@@ -24,22 +24,22 @@ export class Buyer{
   }
 
   //получаем все данные 
-  GetBuyerInfo(): IBuyer{
+  getBuyerInfo(): IBuyer{
     return {...this.buyerInfo};
   }
 
   //Очистка данных 
-    ClearInfo(): void {
+    clearInfo(): void {
     this.buyerInfo = {
-      address: null,
+      address: '',
       payment: null,
-      email: null,
-      phone: null
+      email: '',
+      phone: ''
     };
   }
 
   //Валидация
-  ValidateInfo(): {
+  validateInfo(): {
     isValid: boolean;
     errors: IBuyerInfoValidation
   } {

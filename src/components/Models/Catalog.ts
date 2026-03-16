@@ -1,4 +1,4 @@
-import { IProduct } from "../../../types";
+import { IProduct } from "../../types";
 
 
 export class Catalog {
@@ -8,28 +8,28 @@ export class Catalog {
    constructor(){}
 
    //для получения списка товаров 
-   GetProd(): IProduct[]{
+   getProducts(): IProduct[]{
     return [...this.product];
    }
    
    //для получения одного товара по id
-   GetProdById(productId:string): IProduct | undefined{
+   getProductsById(productId:string): IProduct | undefined{
       const product = this.product.find((product) => product.id === productId);
       return product;
    }
 
    //для сохранения карточки
-   SaveSelProd(product: IProduct): void{
+   saveSelectedProducts(product: IProduct): void{
     this.selectedProduct = {...product};
    }
 
    //для добавления карточки
-   GetSelProd(): IProduct | null{
+   getSelectedProducts(): IProduct | null{
     return this.selectedProduct;
    }
 
    //для сохранения массива товаров
-   SaveProd(product: IProduct[]){
+   saveProducts(product: IProduct[]){
      this.product = [...product];
    }
 }

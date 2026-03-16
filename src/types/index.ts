@@ -5,6 +5,16 @@ export enum TPayment {
   CASH = 'cash'
 }
 
+
+export interface IOrderResponse {
+  id: string;
+  total: number;
+}
+
+export interface IApiSmallHelp{
+  items: IProduct[];
+}
+
 export type ApiObj = object;
 
 export interface IApi {
@@ -22,8 +32,8 @@ export interface IProduct {
 }
 
 export interface IBuyer {
-    address: string | null;
+    address: string;
     payment: TPayment | null;
-    email: string | null;
-    phone: string | null;
+    email: string;
+    phone: string ;
 }

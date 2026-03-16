@@ -97,9 +97,28 @@ Presenter - презентер содержит основную логику п
 `on<T extends object>(event: EventName, callback: (data: T) => void): void` - подписка на событие, принимает название события и функцию обработчик.  
 `emit<T extends object>(event: string, data?: T): void` - инициализация события. При вызове события в метод передается название события и объект с данными, который будет использован как аргумент для вызова обработчика.  
 `trigger<T extends object>(event: string, context?: Partial<T>): (data: T) => void` - возвращает функцию, при вызове которой инициализируется требуемое в параметрах событие с передачей в него данных из второго параметра.
+
 #### Данные
  Интерфейсы:
+`IProduct`:
+ export interface IProduct {
+   id: string;
+   title: string;
+   image: string;
+   category: string;
+   description: string;
+   price: number | null;
+}
+
  Интерфейс `IProduct`: Этот интерфейс создан для описание товаров нашего магазина. Он содержит в себе `Id` товара, его название `title`, описание `description`,категорию товара `category`, изображение  `image`, стоимость `price`.
+
+`IBuyer`:
+export interface IBuyer {
+    address: string | null;
+    payment: TPayment | null;
+    email: string | null;
+    phone: string | null;
+}
 
  Интерфейс `IBuyer`: Этот интерфейс создан для описания покупателя. Он содержит в себе адрес покупателя `address`, способ, которым будет оплачена покупка `payment`, адрес электронной почты `email` и контактный номер телефона `phone`.
 
@@ -114,11 +133,11 @@ Presenter - презентер содержит основную логику п
  ` private selectedProduct: IProduct | null = null;`  - хранит в себе выбранную карточку товара.
 
  Методы класса:
- `GetProd(): IProduct[]` - метод позволяет получить список товаров.
- `GetProdById(productId:string): IProduct | undefined` - метод позволяет получить единственный товар по его Id
- `SaveSelProd(product: IProduct): void` - метод позволяет сохранить выбранный продукт
- `GetSelProd(): IProduct | null` - метод позволяет получить продукт, который мы выбрали
- `SaveProd(product: IProduct[])` - метод позволяет сохранить массив товаров. 
+ `getProducts(): IProduct[]` - метод позволяет получить список товаров.
+ `getProductsById(productId:string): IProduct | undefined` - метод позволяет получить единственный товар по его Id
+ `saveSelectedProducts(product: IProduct): void` - метод позволяет сохранить выбранный продукт
+ `getSelectedProducts(): IProduct | null` - метод позволяет получить продукт, который мы выбрали
+ `saveProducts(product: IProduct[])` - метод позволяет сохранить массив товаров. 
 
  Класс `ShopCart`
  Класс, который содержит в себе информацию о корзине покупок и создан для управления данными в ней.
@@ -129,13 +148,13 @@ Presenter - презентер содержит основную логику п
  Конструктор класса не принимает параметров.
 
  Методы  класса:
- `GetProd(): IProduct[]` - метод позволяет получить список товаров.
- `AddProd(prod: IProduct[])` - метод позволяет добавлять товары.
- `RemoveProd(prodId: string): boolean` - метод позволяет удалять товары по Id
- `TotalProd():number` - метод позволяет получить общее количество товаров в корзине.
- `GetTotalProdPrice():number | null` - метод позволяет получить общую стоимость товаров в корзине.
- `HasProd(productId: string): boolean` - метод проверяет наличие товаров.
- `ShopCartCleaner(): void` - метод для полной очистки корзины.
+ `getProducts(): IProduct[]` - метод позволяет получить список товаров.
+ `addProduct(prod: IProduct)` - метод позволяет добавлять товары.
+ `removeProduct(product: IProduct): void` - метод позволяет удалять товары по Id
+ `totalProducts():number` - метод позволяет получить общее количество товаров в корзине.
+ `getTotalProductsPrice():number | null` - метод позволяет получить общую стоимость товаров в корзине.
+ `hasProduct(productId: string)` - метод проверяет наличие товаров.
+ `shopCartCleaner(): void` - метод для полной очистки корзины.
 
  Класс `Buyer`
  Класс для хранения данных о покупателе.
@@ -152,12 +171,12 @@ Presenter - презентер содержит основную логику п
   Интерфейс `IBuyerInfoValidation` - интерфейс, созданный внутри модели для проверки данных на валидность.
 
   Методы класса:
-  `SaveBuyerInfo(info: Partial<IBuyer>): void` - метод позволяет сохранить данные покупателя.
-  `GetBuyerInfo(): IBuyer` - метод позволяет получить все известные данные о покупателе.
-  `ClearInfo(): void` - метод для очистки данных о покупателе.
-  `ValidateInfo(): { isValid: boolean; errors: IBuyerInfoValidation}` - метод для проверки данных о покупателе на валидность. Позволяет проверить указанные данные и , в случае ошибки, узнать в чем именно ошибся пользователь при вводе данных.
+  `saveBuyerInfo(info: Partial<IBuyer>): void` - метод позволяет сохранить данные покупателя.
+  `getBuyerInfo(): IBuyer` - метод позволяет получить все известные данные о покупателе.
+  `clearInfo(): void` - метод для очистки данных о покупателе.
+  `validateInfo(): { isValid: boolean; errors: IBuyerInfoValidation}` - метод для проверки данных о покупателе на валидность. Позволяет проверить указанные данные и , в случае ошибки, узнать в чем именно ошибся пользователь при вводе данных.
 
-  ##### Слой коммуникации
+  ###### Слой коммуникации
   Класс `CommunicationLayer`
   Класс, который использует композицию для выполнения запроса к серверу с помощью метода get класса Api и  получает с сервера объект с массивом товаров.
 
