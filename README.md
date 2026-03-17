@@ -154,7 +154,7 @@ export interface IBuyer {
  `totalProducts():number` - метод позволяет получить общее количество товаров в корзине.
  `getTotalProductsPrice():number | null` - метод позволяет получить общую стоимость товаров в корзине.
  `hasProduct(productId: string)` - метод проверяет наличие товаров.
- `shopCartCleaner(): void` - метод для полной очистки корзины.
+ `cleanCart(): void` - метод для полной очистки корзины.
 
  Класс `Buyer`
  Класс для хранения данных о покупателе.

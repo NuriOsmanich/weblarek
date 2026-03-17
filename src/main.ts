@@ -40,7 +40,7 @@ cart.removeProduct(product1);
 
 console.log('Количество товаров после удаления', cart.totalProducts());
 
-cart.shopCartCleaner();
+cart.cleanCart();
 console.log('Товары в корзине после очистки', cart.totalProducts());
 
 //Проверяем класс 'Buyer'
@@ -54,7 +54,7 @@ console.log('Инфо о покупателе', buyer.getBuyerInfo());
 const valid = buyer.validateInfo();
 console.log('Результат валидации', valid);
 buyer.clearInfo();
-console.log(buyer);
+console.log('Данные о покупателе, после очистки', buyer.getBuyerInfo());
 
 //Проверяем класс коммуникаций 
 //Получение товаров (Get)
@@ -83,7 +83,7 @@ buyer.saveBuyerInfo({
 })
 
 
-const payload = {
+const payload: IOrderRequest = {
   ...buyer.getBuyerInfo(),
   total: cart.getTotalProductsPrice(),
   items: cart.getProducts().map(prod => prod.id),

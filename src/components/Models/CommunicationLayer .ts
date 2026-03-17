@@ -1,4 +1,4 @@
-import { IApi, IApiSmallHelp, IOrderResponse, IProduct } from "../../types";
+import { IApi, IApiSmallHelp, IOrderRequest, IOrderResponse, IProduct } from "../../types";
 
 
 
@@ -12,7 +12,7 @@ export class CommunicationLayer {
 
   
   
-   async createOrder(orderData: object): Promise<IOrderResponse> {
+   async createOrder(orderData: IOrderRequest): Promise<IOrderResponse> {
     return this.api.post<IOrderResponse>('/order/', orderData);
   
    }

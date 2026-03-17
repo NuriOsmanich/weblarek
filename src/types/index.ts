@@ -5,6 +5,14 @@ export enum TPayment {
   CASH = 'cash'
 }
 
+export interface IOrderRequest {
+  payment: TPayment | null;
+  email: string;
+  phone: string;
+  address: string;
+  total: number | null;
+  items: string[]; 
+}
 
 export interface IOrderResponse {
   id: string;

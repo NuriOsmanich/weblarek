@@ -39,7 +39,7 @@ export class ShopCart{
    }
 
    //чистим корзину
-   shopCartCleaner(): void{
+   cleanCart(): void{
     this.cartProduct = [];
    }
 } 
