@@ -1,4 +1,5 @@
 import { IBuyer } from "../../types";
+import { IEvents } from "../base/Events";
 
 interface IBuyerInfoValidation{
   address?: string;
@@ -15,12 +16,23 @@ export class Buyer{
     phone: ''
   };
  
+  constructor(private readonly events?: IEvents){
+
+  }
+
+  private changesParam() {
+        this.events?.emit('customer:change', {
+            data: this.getBuyerInfo(),
+        });
+    }
+
   //Сохраняем данные 
   saveBuyerInfo(info: Partial<IBuyer>): void{
     this.buyerInfo = {
       ...this.buyerInfo,
       ...info
     }
+    this.changesParam();
   }
 
   //получаем все данные 
@@ -36,6 +48,7 @@ export class Buyer{
       email: '',
       phone: ''
     };
+    this.changesParam();
   }
 
   //Валидация

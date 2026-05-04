@@ -1,11 +1,16 @@
 import { IProduct } from "../../types";
+import { IEvents } from "../base/Events";
 
 export class ShopCart{
   private cartProduct: IProduct[] = [];
 
-  constructor(){
+  constructor(private readonly events?: IEvents){
     
   }
+
+  private changesParam() {
+        this.events?.emit('cart:change');
+    }
   
   //для списка товаров
    getProducts(): IProduct[]{
@@ -15,6 +20,7 @@ export class ShopCart{
    //для добавления товара
    addProduct(prod: IProduct){
     this.cartProduct.push(prod)
+    this.changesParam();
    }
 
    //для удаления товара
@@ -23,6 +29,7 @@ export class ShopCart{
      if(index !== -1){
       this.cartProduct.splice(index, 1)
      } 
+     this.changesParam();
    }
 
    //для получения кол-ва товаров
@@ -41,5 +48,6 @@ export class ShopCart{
    //чистим корзину
    cleanCart(): void{
     this.cartProduct = [];
+    this.changesParam();
    }
 } 

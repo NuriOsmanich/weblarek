@@ -1,11 +1,12 @@
 import { IProduct } from "../../types";
+import { IEvents } from "../base/Events";
 
 
 export class Catalog {
    private product: IProduct[] = [];
    private selectedProduct: IProduct|null = null;
 
-   constructor(){}
+   constructor(private readonly events?: IEvents){}
 
    //для получения списка товаров 
    getProducts(): IProduct[]{
@@ -21,6 +22,7 @@ export class Catalog {
    //для сохранения карточки
    saveSelectedProducts(product: IProduct): void{
     this.selectedProduct = {...product};
+    this.events?.emit('catalog:change')
    }
 
    //для добавления карточки
@@ -31,5 +33,6 @@ export class Catalog {
    //для сохранения массива товаров
    saveProducts(product: IProduct[]){
      this.product = [...product];
+     this.events?.emit('catalog:change')
    }
 }
