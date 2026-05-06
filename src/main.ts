@@ -21,16 +21,16 @@ import { API_URL } from "./utils/constants";
 import { apiProducts } from "./utils/data";
 import { cloneTemplate, ensureElement } from "./utils/utils";
 
-const catalog = new Catalog();
-const cart = new ShopCart();
-const buyer = new Buyer();
+const events = new EventEmitter();
+
+const catalog = new Catalog(events);
+const cart = new ShopCart(events);
+const buyer = new Buyer(events);
 
 //Проверяем класс коммуникаций
 //Получение товаров (Get)
 const api = new Api(API_URL);
 const apiLarek = new CommunicationLayer(api);
-
-const events = new EventEmitter();
 
 const header = new Header(events, ensureElement<HTMLElement>(".header"));
 const gallery = new Gallery(ensureElement<HTMLElement>(".gallery"));
@@ -78,14 +78,17 @@ const renderCatalog = () => {
 
 const renderBasket = () => {
   const itemsInCart = cart.getProducts();
-  const basketItems = itemsInCart.map((product, index) => {
+
+  const items = itemsInCart.map((product, index) => {
     const item = new CardBasket(
       events,
       cloneTemplate<HTMLLIElement>("#card-basket"),
       {
-        onDelete: () => events.emit("basket:item-remove", { id: product.id }),
+        onDelete: () =>
+          events.emit("basket:item-remove", { id: product.id }),
       },
     );
+
     return item.render({
       title: product.title,
       price: product.price,
@@ -94,24 +97,19 @@ const renderBasket = () => {
   });
 
   return basket.render({
-    items: basketItems,
+    items,
     total: cart.getTotalProductsPrice(),
     empty: itemsInCart.length === 0,
   });
 };
 
 const renderPreview = () => {
-  const selectedId = catalog.getSelectedProducts()?.id;
-  if (!selectedId) {
-    return;
-  }
-  const product = catalog.getProductsById(selectedId);
-  if (!product) {
-    return;
-  }
+  const product = catalog.getSelectedProducts();
+  if (!product) return;
 
   const inCart = cart.hasProduct(product.id);
-  cardPreview.render({
+
+  const preview = cardPreview.render({
     title: product.title,
     price: product.price,
     category: product.category,
@@ -119,7 +117,8 @@ const renderPreview = () => {
     description: product.description,
     inCart,
   });
-  modal.open(cardPreview.render());
+
+  modal.open(preview);
 };
 
 const headerCounter = () => {
@@ -127,41 +126,31 @@ const headerCounter = () => {
 };
 
 events.on("cart:change", () => {
-  console.log("Cart changed, current products:", cart.getProducts());
   headerCounter();
   renderBasket();
 });
 
 events.on<{ product: IProduct }>("card:select", ({ product }) => {
   catalog.saveSelectedProducts(product);
+});
+
+events.on("catalog:selected-change", () => {
   renderPreview();
 });
 
 events.on("card:toggle-cart", () => {
   const selected = catalog.getSelectedProducts();
+  if (!selected) return;
 
-  const selectedId = selected?.id;
-  if (!selectedId) {
-    return;
-  }
-
-  const product = catalog.getProductsById(selectedId);
-
-  if (!product) {
-    return;
-  }
-
-  const inCart = cart.hasProduct(selectedId);
+  const inCart = cart.hasProduct(selected.id);
 
   if (inCart) {
-    cart.removeProduct(product);
+    cart.removeProduct(selected);
   } else {
-    cart.addProduct(product);
+    cart.addProduct(selected);
   }
 
-  headerCounter();
-  renderBasket();
-  renderPreview();
+  modal.close();
 });
 
 events.on("basket:open", () => {
@@ -169,136 +158,105 @@ events.on("basket:open", () => {
 });
 
 events.on<{ id: string }>("basket:item-remove", ({ id }) => {
-  const productInCart = cart.getProducts().find((p) => p.id === id);
+  const productInCart = catalog.getProductsById(id);
 
   if (!productInCart) {
     return;
   }
 
   cart.removeProduct(productInCart);
-
-  headerCounter();
-  renderBasket();
 });
 
 events.on("basket:order", () => {
+  if (cart.getProducts().length === 0) {
+    return;
+  }
+
   const data = buyer.getBuyerInfo();
-  formOrders.render({
-    valid: false,
-    errors: "",
+  const errors = buyer.validateInfo().errors;
+
+  const view = formOrders.render({
+    valid: !errors.payment && !errors.address,
+    errors: errors.payment || errors.address || "",
     payment: data.payment,
     address: data.address ?? "",
   });
-  modal.open(formOrders.render());
+
+  modal.open(view);
 });
 
 events.on<{ payment: TPayment }>("order:payment-change", ({ payment }) => {
   buyer.saveBuyerInfo({ payment });
-  events.emit("customer:order-change", {});
 });
 
 events.on<{ address: string }>("order:address-change", ({ address }) => {
   buyer.saveBuyerInfo({ address });
-  events.emit("customer:order-change", {});
 });
 
-events.on("customer:order-change", () => {
+events.on('customer:change', () => {
+  const errors = buyer.validateInfo().errors;
   const data = buyer.getBuyerInfo();
-  const fullValidation = buyer.validateInfo();
-  
-  // Игнорируем email/phone для формы заказа
-  const orderErrors = {
-    address: fullValidation.errors.address,
-    payment: fullValidation.errors.payment
-  };
-  
-  const errorsString = Object.values(orderErrors)
-    .filter(Boolean)  // убираем undefined
-    .join(", ") || "";
-    
-  const isValid = !orderErrors.address && !orderErrors.payment;  // только эти поля
-  
   formOrders.render({
-    valid: isValid,
-    errors: errorsString,
+    valid: !errors.payment && !errors.address,
+    errors: errors.payment || errors.address || '',
     payment: data.payment,
-    address: data.address ?? "",
+    address: data.address ?? '',
   });
 });
 
-events.on("order:submit", () => {
+events.on('order:submit', () => {
   const data = buyer.getBuyerInfo();
-  formContacts.render({
-    valid: false,
-    errors: "",
-    email: data.email ?? "",
-    phone: data.phone ?? "",
+  const errors = buyer.validateInfo().errors;
+
+  const view = formContacts.render({
+    valid: !errors.email && !errors.phone,
+    errors: errors.email || errors.phone || '',
+    email: data.email ?? '',
+    phone: data.phone ?? '',
   });
-  modal.open(formContacts.render());
+
+  modal.open(view);
 });
+
 
 events.on<{ email: string }>("contacts:email-change", ({ email }) => {
   buyer.saveBuyerInfo({ email });
-  events.emit("customer:contacts-change", {});
 });
 
 events.on<{ phone: string }>("contacts:phone-change", ({ phone }) => {
   buyer.saveBuyerInfo({ phone });
-  events.emit("customer:contacts-change", {});
 });
 
-events.on("customer:contacts-change", () => {
+events.on('customer:change', () => {
+  const errors = buyer.validateInfo().errors;
   const data = buyer.getBuyerInfo();
-  const fullValidation = buyer.validateInfo();
-  
-  // Игнорируем address/payment для формы контактов
-  const contactErrors = {
-    email: fullValidation.errors.email,
-    phone: fullValidation.errors.phone
-  };
-  
-  const errorsString = Object.values(contactErrors)
-    .filter(Boolean)
-    .join(", ") || "";
-    
-  const isValid = !contactErrors.email && !contactErrors.phone;
-  
   formContacts.render({
-    valid: isValid,
-    errors: errorsString,
-    email: data.email ?? "",
-    phone: data.phone ?? "",
+    valid: !errors.phone && !errors.email,
+    errors: errors.phone || errors.email || '',
+    email: data.email ?? '',
+    phone: data.phone ?? '',
   });
 });
 
-events.on("contacts:submit", async () => {
-  const fullValidation = buyer.validateInfo();
-  
-  // ✅ Проверяем ТОЛЬКО email + phone
-  const contactErrors = {
-    email: fullValidation.errors.email,
-    phone: fullValidation.errors.phone
-  };
-  
-  if (Object.keys(contactErrors).some(key => contactErrors[key as keyof typeof contactErrors])) {
-    // Есть ошибки контактов
-    const errorsString = Object.values(contactErrors).filter(Boolean).join(", ") || "";
+events.on('contacts:submit', async () => {
+  const errors = buyer.validateInfo().errors;
+  if (errors.phone || errors.email) {
     formContacts.render({
       valid: false,
-      errors: errorsString,
-      email: buyer.getBuyerInfo().email ?? "",
-      phone: buyer.getBuyerInfo().phone ?? "",
+      errors: errors.phone || errors.email || '',
+      email: buyer.getBuyerInfo().email ?? '',
+      phone: buyer.getBuyerInfo().phone ?? '',
     });
     return;
   }
 
   const products = cart.getProducts();
-  const buyerData = buyer.getBuyerInfo();
+  const customerData = buyer.getBuyerInfo();
   const order: IOrderRequest = {
-    payment: buyerData.payment,
-    email: buyerData.email,
-    phone: buyerData.phone,
-    address: buyerData.address,
+    payment: customerData.payment,
+    email: customerData.email,
+    phone: customerData.phone,
+    address: customerData.address,
     total: cart.getTotalProductsPrice(),
     items: products.map((product) => product.id),
   };
@@ -308,8 +266,9 @@ events.on("contacts:submit", async () => {
     success.render({ total: response.total });
     modal.open(success.render());
     cart.cleanCart();
+    buyer.clearInfo();
   } catch (error) {
-    console.error("Ошибка при отправке заказа", error);
+    console.error('Ошибка при отправке заказа', error);
   }
 });
 
@@ -329,3 +288,4 @@ const runApp = async () => {
 };
 
 runApp();
+  
